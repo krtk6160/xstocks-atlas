@@ -2,7 +2,7 @@
   "use strict";
 
   const dataset = window.XSTOCKS_DATA;
-  const matchaDataset = window.MATCHA_LIQUIDITY || { meta: {}, assets: {} };
+  const liquidityDataset = window.LIQUIDITY_DATA || { meta: {}, assets: {} };
   if (!dataset?.assets?.length) {
     document.querySelector("#result-summary").textContent = "Asset data could not be loaded.";
     return;
@@ -83,18 +83,18 @@
     apiRecordLink: document.querySelector("#api-record-link"),
     copyAssetLink: document.querySelector("#copy-asset-link"),
     toast: document.querySelector("#toast"),
-    matchaCoverage: document.querySelector("#matcha-coverage"),
-    matchaSnapshot: document.querySelector("#matcha-snapshot"),
+    liquidityCoverage: document.querySelector("#liquidity-coverage"),
+    liquiditySnapshot: document.querySelector("#liquidity-snapshot"),
   };
 
   const assets = dataset.assets
     .filter((asset) => {
-      const solana = matchaDataset.assets?.[asset.symbol]?.chains.find((chain) => chain.network === ACTIVE_NETWORK);
-      return (solana?.liquidityUsd ?? -1) >= MIN_LIQUIDITY_USD;
+      const liquidity = liquidityDataset.assets?.[asset.symbol];
+      return liquidity?.network === ACTIVE_NETWORK && liquidity.liquidityUsd >= MIN_LIQUIDITY_USD;
     })
     .map((asset) => ({
     ...asset,
-    matcha: matchaDataset.assets?.[asset.symbol] || null,
+    liquidity: liquidityDataset.assets?.[asset.symbol] || null,
     deployments: asset.deployments.filter((deployment) => deployment.network === ACTIVE_NETWORK),
     searchText: normalize([
       asset.symbol,
@@ -106,7 +106,8 @@
       asset.exchange?.mic,
       asset.exchange?.abbreviation,
       asset.exchange?.name,
-      matchaDataset.assets?.[asset.symbol] ? "matcha liquidity dex" : "",
+      liquidityDataset.assets?.[asset.symbol] ? "dex screener pool liquidity" : "",
+      ...(liquidityDataset.assets?.[asset.symbol]?.dexes || []),
       ...asset.deployments.flatMap((deployment) => [deployment.network, deployment.address, deployment.wrapperAddress]),
     ].filter(Boolean).join(" ")),
     }));
@@ -142,13 +143,16 @@
     return new Intl.NumberFormat("en-US").format(value);
   }
 
-  function formatDate(value) {
+  function formatTimestamp(value) {
     return new Intl.DateTimeFormat("en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
       timeZone: "UTC",
-    }).format(new Date(value)).toUpperCase();
+    }).format(new Date(value)).toUpperCase() + " UTC";
   }
 
   function formatPrice(asset) {
@@ -178,18 +182,18 @@
     }).format(value);
   }
 
-  function matchaPoint(asset) {
-    return asset.matcha?.chains.find((chain) => chain.network === ACTIVE_NETWORK) || null;
+  function liquidityPoint(asset) {
+    return asset.liquidity?.network === ACTIVE_NETWORK ? asset.liquidity : null;
   }
 
   function initializeStats() {
-    els.snapshotLabel.textContent = `SNAPSHOT ${formatDate(dataset.meta.generatedAt)}`;
+    els.snapshotLabel.textContent = `SNAPSHOT ${formatTimestamp(dataset.meta.generatedAt)}`;
     els.assetCount.textContent = formatNumber(assets.length);
     els.networkCount.textContent = "1";
     els.deploymentCount.textContent = formatNumber(assets.reduce((total, asset) => total + asset.deployments.length, 0));
-    els.matchaCoverage.textContent = formatNumber(assets.length);
-    els.matchaSnapshot.textContent = matchaDataset.meta.generatedAt
-      ? `SNAPSHOT ${formatDate(matchaDataset.meta.generatedAt)}`
+    els.liquidityCoverage.textContent = formatNumber(assets.length);
+    els.liquiditySnapshot.textContent = liquidityDataset.meta.generatedAt
+      ? `SNAPSHOT ${formatTimestamp(liquidityDataset.meta.generatedAt)}`
       : "NO SNAPSHOT";
   }
 
@@ -213,12 +217,12 @@
     const result = assets.filter((asset) => {
       const matchesQuery = terms.every((term) => asset.searchText.includes(term));
       const matchesExchange = state.exchange === "all" || asset.exchange?.mic === state.exchange;
-      const point = matchaPoint(asset);
+      const point = liquidityPoint(asset);
       const meetsLiquidityFloor = Boolean(point) && point.liquidityUsd >= MIN_LIQUIDITY_USD;
       return matchesQuery && matchesExchange && meetsLiquidityFloor;
     });
 
-    const liquidityValue = (asset) => matchaPoint(asset)?.liquidityUsd;
+    const liquidityValue = (asset) => liquidityPoint(asset)?.liquidityUsd;
     const compareLiquidity = (a, b, direction) => {
       const aValue = liquidityValue(a);
       const bValue = liquidityValue(b);
@@ -245,7 +249,7 @@
     const qualifiers = [];
     qualifiers.push(ACTIVE_NETWORK);
     if (state.exchange !== "all") qualifiers.push(state.exchange);
-    qualifiers.push("$100k+ Matcha liquidity");
+    qualifiers.push("$100k+ indexed pool liquidity");
     if (state.query.trim()) qualifiers.push(`“${state.query.trim()}”`);
 
     els.resultSummary.innerHTML = `<strong>${formatNumber(filtered.length)}</strong> ${totalLabel}${qualifiers.length ? ` / ${escapeHtml(qualifiers.join(" / "))}` : " / complete catalog"}`;
@@ -261,11 +265,11 @@
     const remaining = asset.deployments.length - visibleNetworks.length;
     const exchange = asset.exchange?.abbreviation || "UNLISTED";
     const price = Number.isFinite(asset.price) ? formatPrice(asset) : `${asset.currency || "USD"} quote`;
-    const matcha = matchaPoint(asset);
-    const liquidity = matcha ? formatUsdCompact(matcha.liquidityUsd) : "NOT INDEXED";
-    const liquidityContext = matcha
-      ? `${networkLabel(matcha.network)} · score ${matcha.score}`
-      : "Matcha / Codex";
+    const poolData = liquidityPoint(asset);
+    const liquidity = poolData ? formatUsdCompact(poolData.liquidityUsd) : "NOT INDEXED";
+    const liquidityContext = poolData
+      ? `${networkLabel(poolData.network)} · ${poolData.pairCount} ${poolData.pairCount === 1 ? "pool" : "pools"}`
+      : "DEX Screener";
 
     return `
       <button class="asset-card" type="button" data-symbol="${escapeHtml(asset.symbol)}" aria-label="Open ${escapeHtml(asset.name)} details and chart">
@@ -284,7 +288,7 @@
             <strong>${escapeHtml(price)}</strong>
           </div>
           <div class="card-liquidity">
-            <span>Matcha liquidity</span>
+            <span>Pool liquidity</span>
             <strong>${escapeHtml(liquidity)}</strong>
             <small>${escapeHtml(liquidityContext)}</small>
           </div>
@@ -341,10 +345,11 @@
     els.dialogNetworkCount.textContent = asset.deployments.length;
     els.chartNote.textContent = `${chartTicker(asset)} · TradingView chart for the underlying listed security. The xStock token can trade at a premium or discount, especially outside primary-market hours.`;
 
-    const selectedLiquidity = matchaPoint(asset) || asset.matcha;
+    const selectedLiquidity = liquidityPoint(asset);
     els.assetRecord.innerHTML = recordRows([
-      ["Matcha liquidity", selectedLiquidity ? `${formatUsdCompact(selectedLiquidity.liquidityUsd)} on ${networkLabel(selectedLiquidity.network)}` : "Not indexed"],
-      ["Liquidity score", selectedLiquidity ? String(selectedLiquidity.score) : "—"],
+      ["Pool liquidity", selectedLiquidity ? `${formatUsdCompact(selectedLiquidity.liquidityUsd)} on ${networkLabel(selectedLiquidity.network)}` : "Not indexed"],
+      ["Indexed pools", selectedLiquidity ? String(selectedLiquidity.pairCount) : "—"],
+      ["DEXes", selectedLiquidity?.dexes?.length ? selectedLiquidity.dexes.join(", ") : "—"],
       ["DEX volume 24h", selectedLiquidity ? formatUsdCompact(selectedLiquidity.volume24h) : "—"],
       ["Underlying", asset.underlyingSymbol || "—"],
       ["Exchange", asset.exchange ? `${asset.exchange.name} (${asset.exchange.mic})` : "Not reported"],

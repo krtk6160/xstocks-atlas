@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "node server.mjs",
     "refresh-data": "node scripts/update-data.mjs",
-    "refresh-data:visible": "node scripts/update-data.mjs --price-symbols=data/matcha-liquidity.js",
+    "refresh-data:visible": "node scripts/update-data.mjs --price-symbols=data/liquidity.js",
     "refresh-data:catalog-only": "node scripts/update-data.mjs --skip-prices",
-    "refresh-matcha": "node scripts/update-matcha-liquidity.mjs",
+    "refresh-liquidity": "node scripts/update-liquidity.mjs",
     "check": "node scripts/check-data.mjs"
   }
 }

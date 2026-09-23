@@ -508,7 +508,7 @@ footer {
   letter-spacing: 0.09em;
 }
 
-.matcha-dot {
+.liquidity-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -525,7 +525,7 @@ footer {
   font-weight: 700;
 }
 
-#matcha-snapshot {
+#liquidity-snapshot {
   color: #707467;
   letter-spacing: 0.06em;
   white-space: nowrap;
@@ -1433,7 +1433,7 @@ footer a:focus-visible {
   .filter-heading { padding-bottom: 0; border-right: 0; }
   .network-filters { padding-top: 18px; }
   .liquidity-brief { grid-template-columns: auto 1fr; }
-  #matcha-snapshot { grid-column: 2; }
+  #liquidity-snapshot { grid-column: 2; }
   .dialog-body { display: block; overflow-y: auto; }
   .chart-panel { min-height: 580px; border-right: 0; border-bottom: 1px solid var(--line); }
   .asset-sidebar { overflow: visible; }
@@ -1459,7 +1459,7 @@ footer a:focus-visible {
   .network-filters::-webkit-scrollbar { display: none; }
   .network-filter { flex: 0 0 auto; }
   .liquidity-brief { grid-template-columns: 1fr; gap: 8px; padding: 18px 20px; }
-  #matcha-snapshot { grid-column: auto; }
+  #liquidity-snapshot { grid-column: auto; }
   .catalog-toolbar { align-items: flex-start; flex-direction: column; gap: 15px; padding: 18px 20px; }
   .toolbar-actions { width: 100%; flex-wrap: wrap; }
   .toolbar-actions label { display: none; }

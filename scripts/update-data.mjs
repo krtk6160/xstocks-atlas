@@ -16,9 +16,9 @@ async function loadPriceSymbols() {
   const source = await readFile(resolve(projectRoot, requestedPath), "utf8");
   const context = { window: {} };
   vm.runInNewContext(source, context);
-  const matchaAssets = Object.values(context.window.MATCHA_LIQUIDITY?.assets || {});
-  const symbols = new Set(matchaAssets
-    .filter((asset) => asset.chains.some((chain) => chain.network === "Solana" && chain.liquidityUsd >= 100000))
+  const liquidityAssets = Object.values(context.window.LIQUIDITY_DATA?.assets || {});
+  const symbols = new Set(liquidityAssets
+    .filter((asset) => asset.network === "Solana" && asset.liquidityUsd >= 100000)
     .map((asset) => asset.symbol));
   if (!symbols.size) throw new Error(`No eligible price symbols found in ${requestedPath}`);
   process.stdout.write(`Limiting quote refresh to ${symbols.size} visible Solana assets\n`);

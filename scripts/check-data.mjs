@@ -2,12 +2,12 @@ import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
 const source = await readFile(new URL("../data/assets.js", import.meta.url), "utf8");
-const matchaSource = await readFile(new URL("../data/matcha-liquidity.js", import.meta.url), "utf8");
+const liquiditySource = await readFile(new URL("../data/liquidity.js", import.meta.url), "utf8");
 const context = { window: {} };
 vm.runInNewContext(source, context);
-vm.runInNewContext(matchaSource, context);
+vm.runInNewContext(liquiditySource, context);
 const data = context.window.XSTOCKS_DATA;
-const matcha = context.window.MATCHA_LIQUIDITY;
+const liquidity = context.window.LIQUIDITY_DATA;
 
 if (!data?.assets?.length) throw new Error("No assets in generated data");
 if (data.meta.totalAssets !== data.assets.length) throw new Error("Asset count mismatch");
@@ -31,16 +31,20 @@ for (const asset of data.assets) {
 if (networks.size !== data.meta.networks.length) throw new Error("Network count mismatch");
 if (deployments !== data.meta.totalDeployments) throw new Error("Deployment count mismatch");
 
-const matchaAssets = Object.values(matcha?.assets || {});
-if (matchaAssets.length !== matcha.meta.totalAssets) throw new Error("Matcha asset count mismatch");
-for (const [index, asset] of matchaAssets.sort((a, b) => a.rank - b.rank).entries()) {
-  if (!symbols.has(asset.symbol)) throw new Error(`Matcha symbol missing from xStocks catalog: ${asset.symbol}`);
-  if (asset.rank !== index + 1) throw new Error(`Invalid Matcha rank for ${asset.symbol}`);
-  if (!Number.isFinite(asset.liquidityUsd) || asset.liquidityUsd < 0) throw new Error(`Invalid Matcha liquidity for ${asset.symbol}`);
-  if (!asset.chains.length) throw new Error(`No Matcha chain data for ${asset.symbol}`);
+const liquidityAssets = Object.values(liquidity?.assets || {});
+if (liquidityAssets.length !== liquidity.meta.indexedAssets) throw new Error("DEX Screener asset count mismatch");
+for (const [index, asset] of liquidityAssets.sort((a, b) => a.rank - b.rank).entries()) {
+  if (!symbols.has(asset.symbol)) throw new Error(`Liquidity symbol missing from xStocks catalog: ${asset.symbol}`);
+  if (asset.rank !== index + 1) throw new Error(`Invalid liquidity rank for ${asset.symbol}`);
+  if (asset.network !== "Solana") throw new Error(`Unexpected liquidity network for ${asset.symbol}`);
+  if (!Number.isFinite(asset.liquidityUsd) || asset.liquidityUsd <= 0) throw new Error(`Invalid liquidity for ${asset.symbol}`);
+  if (!Number.isInteger(asset.pairCount) || asset.pairCount < 1) throw new Error(`No indexed pool for ${asset.symbol}`);
+  const catalogAsset = data.assets.find((candidate) => candidate.symbol === asset.symbol);
+  const deployment = catalogAsset.deployments.find((candidate) => candidate.network === "Solana");
+  if (deployment?.address !== asset.address) throw new Error(`Solana address mismatch for ${asset.symbol}`);
 }
 
-const eligibleAssets = matchaAssets.filter((asset) => asset.liquidityUsd >= 100000);
-if (!eligibleAssets.length) throw new Error("No Matcha assets meet the $100k liquidity floor");
+const eligibleAssets = liquidityAssets.filter((asset) => asset.liquidityUsd >= 100000);
+if (!eligibleAssets.length) throw new Error("No assets meet the $100k pool-liquidity floor");
 
-process.stdout.write(`OK: ${symbols.size} unique assets, ${networks.size} networks, ${deployments} deployments, ${matchaAssets.length} Matcha records, ${eligibleAssets.length} above $100k\n`);
+process.stdout.write(`OK: ${symbols.size} unique assets, ${networks.size} networks, ${deployments} deployments, ${liquidityAssets.length} DEX Screener records, ${eligibleAssets.length} above $100k\n`);
