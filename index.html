@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Search Solana xStocks with at least $100,000 of verified Matcha liquidity, inspect token contracts, and open interactive market charts." />
+    <meta name="theme-color" content="#0b0c0a" />
+    <title>xStocks Atlas — The complete onchain stock map</title>
+    <link rel="preconnect" href="https://xstocks-metadata.backed.fi" crossorigin />
+    <link rel="preconnect" href="https://s3.tradingview.com" crossorigin />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./data/assets.js" defer></script>
+    <script src="./data/matcha-liquidity.js" defer></script>
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#catalog">Skip to catalog</a>
+
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="xStocks Atlas home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
+        <span>
+          <b>xSTOCKS</b>
+          <small>ATLAS / 01</small>
+        </span>
+      </a>
+
+      <div class="header-meta">
+        <span class="pulse" aria-hidden="true"></span>
+        <span>BACKED PUBLIC API</span>
+        <span class="header-divider">/</span>
+        <span id="snapshot-label">LOADING SNAPSHOT</span>
+      </div>
+
+      <a class="header-link" href="https://docs.xstocks.fi/apis/openapi" target="_blank" rel="noreferrer">
+        API DOCS <span aria-hidden="true">↗</span>
+      </a>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span>MARKET DIRECTORY</span> TOKENIZED EQUITIES + ETFs</p>
+          <h1 id="hero-title">The onchain<br /><em>market map.</em></h1>
+          <p class="hero-intro">
+            Solana xStocks that clear $100k of verified onchain liquidity. Search by company, ticker, exchange, ISIN, or contract—then open the underlying market chart.
+          </p>
+        </div>
+
+        <div class="hero-stats" aria-label="Catalog statistics">
+          <article>
+            <span class="stat-index">01</span>
+            <strong id="asset-count">—</strong>
+            <p>assets above $100k liquidity</p>
+          </article>
+          <article>
+            <span class="stat-index">02</span>
+            <strong id="network-count">—</strong>
+            <p>network · Solana only</p>
+          </article>
+          <article>
+            <span class="stat-index">03</span>
+            <strong id="deployment-count">—</strong>
+            <p>contract deployments</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="explorer" id="catalog" aria-label="Solana xStocks catalog">
+        <div class="search-shell">
+          <span class="search-icon" aria-hidden="true"></span>
+          <label class="sr-only" for="asset-search">Search xStocks</label>
+          <input
+            id="asset-search"
+            type="search"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Search AAPLx, Apple, ISIN, contract…"
+          />
+          <kbd>/</kbd>
+        </div>
+
+        <div class="liquidity-brief">
+          <div class="liquidity-brief-label">
+            <span class="matcha-dot" aria-hidden="true"></span>
+            MATCHA / CODEX
+          </div>
+          <p>
+            <strong id="matcha-coverage">—</strong> Solana assets pass the $100k minimum. Lower-liquidity, unindexed, and non-Solana deployments are excluded.
+          </p>
+          <span id="matcha-snapshot">LOADING</span>
+        </div>
+
+        <div class="catalog-toolbar">
+          <p id="result-summary" aria-live="polite">Loading assets…</p>
+          <div class="toolbar-actions">
+            <label for="exchange-filter">Exchange</label>
+            <select id="exchange-filter">
+              <option value="all">All exchanges</option>
+            </select>
+            <label for="sort-order">Sort</label>
+            <select id="sort-order">
+              <option value="liquidity-desc">Liquidity high–low</option>
+              <option value="liquidity-asc">Liquidity low–high</option>
+              <option value="symbol-asc">Ticker A–Z</option>
+              <option value="symbol-desc">Ticker Z–A</option>
+              <option value="name-asc">Company A–Z</option>
+              <option value="networks-desc">Most networks</option>
+            </select>
+            <button class="reset-button" id="reset-filters" type="button">Reset</button>
+          </div>
+        </div>
+
+        <div class="asset-grid" id="asset-grid" aria-busy="true"></div>
+
+        <div class="empty-state" id="empty-state" hidden>
+          <span>NO MATCH</span>
+          <h3>Nothing on this route.</h3>
+          <p>No matching Solana asset has at least $100k of verified Matcha liquidity.</p>
+          <button type="button" id="empty-reset">Clear filters</button>
+        </div>
+
+        <div class="load-more-wrap" id="load-more-wrap" hidden>
+          <button class="load-more" id="load-more" type="button">
+            <span>Load more assets</span>
+            <small id="load-more-count"></small>
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        <span class="footer-kicker">DATA / SOURCES</span>
+        <p>
+          Catalog, networks, contracts, and indicative quotes are sourced from the
+          <a href="https://api.xstocks.fi/api/v2/public/assets" target="_blank" rel="noreferrer">official xStocks API</a>.
+          Onchain liquidity comes from <a href="https://matcha.xyz/" target="_blank" rel="noreferrer">Matcha</a>, whose displayed metric is powered by Codex.
+          Charts show the underlying listed security via TradingView—not token-market history.
+        </p>
+      </div>
+      <div class="footer-links">
+        <a href="https://docs.xstocks.fi/developers" target="_blank" rel="noreferrer">Developer docs ↗</a>
+        <a href="https://assets.backed.fi/legal-documentation" target="_blank" rel="noreferrer">Legal docs ↗</a>
+        <a href="https://xstocks.com/" target="_blank" rel="noreferrer">xStocks ↗</a>
+      </div>
+      <p class="disclaimer">Independent directory. Not affiliated with Backed or xStocks. Informational only; not investment advice.</p>
+    </footer>
+
+    <dialog class="asset-dialog" id="asset-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-frame">
+        <header class="dialog-header">
+          <div class="dialog-identity">
+            <div class="dialog-logo-wrap">
+              <img id="dialog-logo" alt="" />
+              <span id="dialog-logo-fallback"></span>
+            </div>
+            <div>
+              <p id="dialog-exchange"></p>
+              <h2 id="dialog-title"></h2>
+              <span id="dialog-name"></span>
+            </div>
+          </div>
+          <button class="dialog-close" id="dialog-close" type="button" aria-label="Close asset details">
+            <span></span><span></span>
+          </button>
+        </header>
+
+        <div class="dialog-body">
+          <section class="chart-panel" aria-labelledby="chart-heading">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">UNDERLYING MARKET</p>
+                <h3 id="chart-heading">Interactive price chart</h3>
+              </div>
+              <div class="quote-block">
+                <span>BACKED INDICATIVE</span>
+                <strong id="dialog-price">—</strong>
+              </div>
+            </div>
+            <div class="chart-container" id="chart-container">
+              <div class="chart-loading"><span></span>Loading market chart…</div>
+            </div>
+            <p class="chart-note" id="chart-note"></p>
+          </section>
+
+          <aside class="asset-sidebar">
+            <section>
+              <p class="panel-kicker">ASSET RECORD</p>
+              <dl class="asset-record" id="asset-record"></dl>
+            </section>
+            <section class="network-section">
+              <div class="network-section-heading">
+                <div>
+                  <p class="panel-kicker">ONCHAIN DEPLOYMENTS</p>
+                  <h3>Networks + contracts</h3>
+                </div>
+                <span id="dialog-network-count"></span>
+              </div>
+              <div class="deployment-list" id="deployment-list"></div>
+            </section>
+          </aside>
+        </div>
+
+        <div class="dialog-footer">
+          <a id="api-record-link" href="#" target="_blank" rel="noreferrer">View official API record ↗</a>
+          <button type="button" id="copy-asset-link">Copy asset link</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <noscript>
+      <div class="noscript">This directory needs JavaScript enabled for search, filtering, and charts.</div>
+    </noscript>
+  </body>
+</html>

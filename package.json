@@ -1,0 +1,13 @@
+{
+  "name": "xstocks-atlas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "refresh-data": "node scripts/update-data.mjs",
+    "refresh-data:catalog-only": "node scripts/update-data.mjs --skip-prices",
+    "refresh-matcha": "node scripts/update-matcha-liquidity.mjs",
+    "check": "node scripts/check-data.mjs"
+  }
+}
