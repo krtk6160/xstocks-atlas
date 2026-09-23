@@ -14,7 +14,9 @@ npm run dev
 
 Open <http://127.0.0.1:4173>. The catalog itself is bundled into `data/assets.js`, so search and filtering also work when `index.html` is opened directly. Logos and TradingView charts require an internet connection.
 
-Every push to `main` deploys the static browser assets through GitHub Actions. The maintenance scripts and local server are kept in the repository but excluded from the Pages artifact.
+Every push to `main` deploys the static browser assets through GitHub Actions. A scheduled run also refreshes Matcha liquidity, the xStocks catalog, and visible indicative quotes every hour before deploying. The live site therefore stays current without adding automated commits to the repository. GitHub may delay scheduled runs during periods of high Actions load.
+
+The maintenance scripts and local server are kept in the repository but excluded from the Pages artifact.
 
 ## Refresh the catalog
 
