@@ -85,6 +85,10 @@
     toast: document.querySelector("#toast"),
     liquidityCoverage: document.querySelector("#liquidity-coverage"),
     liquiditySnapshot: document.querySelector("#liquidity-snapshot"),
+    themeToggle: document.querySelector("#theme-toggle"),
+    themeIcon: document.querySelector("#theme-icon"),
+    themeLabel: document.querySelector("#theme-label"),
+    themeColor: document.querySelector('meta[name="theme-color"]'),
   };
 
   const assets = dataset.assets
@@ -184,6 +188,26 @@
 
   function liquidityPoint(asset) {
     return asset.liquidity?.network === ACTIVE_NETWORK ? asset.liquidity : null;
+  }
+
+  function currentTheme() {
+    return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  }
+
+  function updateThemeControl() {
+    const dark = currentTheme() === "dark";
+    els.themeToggle.setAttribute("aria-pressed", String(dark));
+    els.themeToggle.setAttribute("aria-label", `Switch to ${dark ? "light" : "dark"} mode`);
+    els.themeIcon.textContent = dark ? "☀" : "☾";
+    els.themeLabel.textContent = dark ? "Light" : "Dark";
+    els.themeColor.content = dark ? "#182134" : "#f5f1e8";
+  }
+
+  function setTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("xstocks-theme", theme); } catch {}
+    updateThemeControl();
+    if (state.selected && els.dialog.open) renderChart(state.selected);
   }
 
   function initializeStats() {
@@ -410,11 +434,11 @@
       symbol: chartTicker(asset),
       interval: "D",
       timezone: asset.exchange?.timezone || "Etc/UTC",
-      theme: "dark",
+      theme: currentTheme(),
       style: "1",
       locale: "en",
-      backgroundColor: "rgba(11, 12, 10, 1)",
-      gridColor: "rgba(242, 240, 232, 0.06)",
+      backgroundColor: currentTheme() === "dark" ? "#212d43" : "#fffdf8",
+      gridColor: currentTheme() === "dark" ? "rgba(255,255,255,0.08)" : "rgba(27,37,64,0.08)",
       allow_symbol_change: true,
       calendar: false,
       hide_side_toolbar: false,
@@ -505,6 +529,9 @@
       if (button) copyText(button.dataset.copy, "Contract copied");
     });
     els.copyAssetLink.addEventListener("click", () => copyText(window.location.href, "Asset link copied"));
+    els.themeToggle.addEventListener("click", () => {
+      setTheme(currentTheme() === "dark" ? "light" : "dark");
+    });
 
     document.addEventListener("keydown", (event) => {
       const tag = document.activeElement?.tagName;
@@ -530,6 +557,7 @@
     if (asset) openAsset(asset, { updateUrl: false });
   }
 
+  updateThemeControl();
   initializeStats();
   initializeFilters();
   bindEvents();

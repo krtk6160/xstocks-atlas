@@ -1,13 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Search Solana xStocks with at least $100,000 of indexed on-chain pool liquidity, inspect token contracts, and open interactive market charts." />
-    <meta name="theme-color" content="#0b0c0a" />
+    <meta name="theme-color" content="#f5f1e8" />
     <title>xStocks Atlas — The complete onchain stock map</title>
     <link rel="preconnect" href="https://xstocks-metadata.backed.fi" crossorigin />
     <link rel="preconnect" href="https://s3.tradingview.com" crossorigin />
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("xstocks-theme") || "light";
+      } catch {}
+    </script>
     <link rel="stylesheet" href="./styles.css" />
     <script src="./data/assets.js" defer></script>
     <script src="./data/liquidity.js" defer></script>
@@ -32,9 +37,15 @@
         <span id="snapshot-label">LOADING SNAPSHOT</span>
       </div>
 
-      <a class="header-link" href="https://docs.xstocks.fi/apis/openapi" target="_blank" rel="noreferrer">
-        API DOCS <span aria-hidden="true">↗</span>
-      </a>
+      <div class="header-actions">
+        <a class="header-link" href="https://docs.xstocks.fi/apis/openapi" target="_blank" rel="noreferrer">
+          API DOCS <span aria-hidden="true">↗</span>
+        </a>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+          <span class="theme-icon" id="theme-icon" aria-hidden="true">☾</span>
+          <span id="theme-label">Dark</span>
+        </button>
+      </div>
     </header>
 
     <main>
