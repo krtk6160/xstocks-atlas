@@ -32,14 +32,21 @@ jobs:
         with:
           node-version: 22
 
-      - name: Refresh xStocks catalog
-        run: npm run refresh-data:catalog-only
+      - name: Refresh market data when APIs are available
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/xstocks-data-snapshot"
+          cp data/assets.js data/liquidity.js "$RUNNER_TEMP/xstocks-data-snapshot/"
 
-      - name: Refresh Solana pool liquidity
-        run: npm run refresh-liquidity
-
-      - name: Refresh xStocks catalog and visible quotes
-        run: npm run refresh-data:visible
+          if npm run refresh-data:catalog-only \
+            && npm run refresh-liquidity \
+            && npm run refresh-data:visible; then
+            echo "Market data refresh completed."
+          else
+            echo "::warning::A public data API was unavailable; deploying the last validated snapshot."
+            cp "$RUNNER_TEMP/xstocks-data-snapshot/assets.js" data/assets.js
+            cp "$RUNNER_TEMP/xstocks-data-snapshot/liquidity.js" data/liquidity.js
+          fi
 
       - name: Validate refreshed data
         run: npm run check
