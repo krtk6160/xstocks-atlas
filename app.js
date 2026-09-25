@@ -54,7 +54,6 @@
   const els = {
     snapshotLabel: document.querySelector("#snapshot-label"),
     assetCount: document.querySelector("#asset-count"),
-    deploymentCount: document.querySelector("#deployment-count"),
     search: document.querySelector("#asset-search"),
     exchangeFilter: document.querySelector("#exchange-filter"),
     sortOrder: document.querySelector("#sort-order"),
@@ -212,7 +211,6 @@
   function initializeStats() {
     els.snapshotLabel.textContent = `SNAPSHOT ${formatTimestamp(dataset.meta.generatedAt)}`;
     els.assetCount.textContent = formatNumber(assets.length);
-    els.deploymentCount.textContent = formatNumber(assets.reduce((total, asset) => total + asset.deployments.length, 0));
     els.liquidityCoverage.textContent = formatNumber(assets.length);
     els.liquiditySnapshot.textContent = liquidityDataset.meta.generatedAt
       ? `SNAPSHOT ${formatTimestamp(liquidityDataset.meta.generatedAt)}`
