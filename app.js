@@ -54,7 +54,6 @@
   const els = {
     snapshotLabel: document.querySelector("#snapshot-label"),
     assetCount: document.querySelector("#asset-count"),
-    networkCount: document.querySelector("#network-count"),
     deploymentCount: document.querySelector("#deployment-count"),
     search: document.querySelector("#asset-search"),
     exchangeFilter: document.querySelector("#exchange-filter"),
@@ -213,7 +212,6 @@
   function initializeStats() {
     els.snapshotLabel.textContent = `SNAPSHOT ${formatTimestamp(dataset.meta.generatedAt)}`;
     els.assetCount.textContent = formatNumber(assets.length);
-    els.networkCount.textContent = "1";
     els.deploymentCount.textContent = formatNumber(assets.reduce((total, asset) => total + asset.deployments.length, 0));
     els.liquidityCoverage.textContent = formatNumber(assets.length);
     els.liquiditySnapshot.textContent = liquidityDataset.meta.generatedAt
@@ -285,8 +283,6 @@
   }
 
   function assetCard(asset) {
-    const visibleNetworks = asset.deployments.slice(0, 7);
-    const remaining = asset.deployments.length - visibleNetworks.length;
     const exchange = asset.exchange?.abbreviation || "UNLISTED";
     const price = Number.isFinite(asset.price) ? formatPrice(asset) : `${asset.currency || "USD"} quote`;
     const poolData = liquidityPoint(asset);
@@ -316,10 +312,6 @@
             <strong>${escapeHtml(liquidity)}</strong>
             <small>${escapeHtml(liquidityContext)}</small>
           </div>
-        </div>
-        <div class="card-networks" aria-label="${asset.deployments.length} network deployments">
-          ${visibleNetworks.map((deployment) => `<i class="network-dot" style="--network-color:${networkColor(deployment.network)}" title="${escapeHtml(networkLabel(deployment.network))}"></i>`).join("")}
-          ${remaining > 0 ? `<span class="network-overflow">+${remaining}</span>` : ""}
         </div>
         <span class="card-action">CHART + DETAILS →</span>
       </button>`;
